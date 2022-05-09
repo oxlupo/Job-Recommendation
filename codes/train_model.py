@@ -4,6 +4,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
+import os
 
 def read_csv_make_dataset(csv_path):
     """file_path is a directory and read csv with pandas library :arg"""
@@ -11,9 +12,9 @@ def read_csv_make_dataset(csv_path):
     dataset["sentence_id"] = LabelEncoder().fit_transform(dataset["sentence_id"])
     dataset["labels"] = dataset["labels"].str.upper()
 
-    X = dataset[["sentence_id", "words"]]
-    Y = dataset["labels"]
-    x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+    x = dataset[["sentence_id", "words"]]
+    y = dataset["labels"]
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
     # building up train data and test data
     train_data = pd.DataFrame({"sentence_id": x_train["sentence_id"], "words": x_train["words"], "labels": y_train})
     test_data = pd.DataFrame({"sentence_id": x_test["sentence_id"], "words": x_test["words"], "labels": y_test})
@@ -72,9 +73,10 @@ def predication_model(model, sentences):
         raise Exception("TYPE-ERROR: only list and str format was acceptable")
 
 
-with open("config/config.json") as config:
+absolute_path = os.getcwd()
+
+with open(f"{absolute_path}/config/ner_config.json") as config:
     config = json.load(config)
     args = arg_config(config)
-
 
 
