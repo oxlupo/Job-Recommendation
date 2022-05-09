@@ -11,19 +11,8 @@ from nltk.tokenize import word_tokenize
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-# model_args = NERArgs()
-#
-# custom_labels = ["O", "B-SKILL", "I-SKILL", "B-DIPLOMA-MAJOR", "I-DIPLOMA-MAJOR", "B-EXPERIENCE", "I-EXPERIENCE", "B-ORG", "I-ORG", "B-PERSON", "I-PERSON"]
-# model_args.labels_list = custom_labels
-#
-# model = NERModel(
-#     "roberta",
-#     "roberta-base",
-#     args=model_args,
-#     use_cuda=False
-# )
 
-# model.train_model()
+
 linkdin_skills = open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8")
 skills = linkdin_skills.read()
 skills_list = skills.split("\n")
@@ -55,7 +44,6 @@ def split_sentences_token(sentences_list):
                 f"sentences_id": f"{index}",
                 f"words": token
             })
-
             main_dataframe = main_dataframe.append(data_frame, ignore_index=True)
     else:
         raise Exception("You must give the function a list of sentences")
