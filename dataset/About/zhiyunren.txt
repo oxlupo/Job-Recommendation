@@ -1,0 +1,7 @@
+Machine Learning Engineer with expertise in Deep Learning, Natural Language Processing and Recommender Systems. Experienced professional in machine learning research and model deployment in production. PhD in Computer Science with 7 years of programming experiences in Python, C programming, PyTorch and Bash script.
+
+Core Competencies:
+
+- 7 years of Python/C/C++ programming experiences
+- 7 years of research experiences in machine learning and data mining fields
+- 4 years of research experiences in deep learning
