@@ -1,6 +1,3 @@
-import csv
-import json
-from simpletransformers.ner import NERModel, NERArgs
 import pandas as pd
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -8,14 +5,7 @@ transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
 from nltk import pos_tag, RegexpParser, tokenize
 from nltk.tokenize import word_tokenize
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 
-
-linkdin_skills = open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8")
-skills = linkdin_skills.read()
-skills_list = skills.split("\n")
 
 def split_by_sentences(text):
     """use NLTK Tokenize for split text file with sentences"""
@@ -26,20 +16,18 @@ def split_by_sentences(text):
 def split_by_token(sentences):
     return word_tokenize(sentences)
 
-cample = open("About/zhiyunren.txt", "r", encoding="utf-8")
-text = cample.read()
-sentences_list = split_by_sentences(text=text)
 
 def split_sentences_token(sentences_list):
     """sentences_list is arg :arg
-       a Data-frame with number of each sentences and token :returns
+       a Data-frame with number of each sentence and token :returns
     """
     if isinstance(sentences_list, list):
         main_dataframe = pd.DataFrame({
 
         }, columns=["sentences_id", "words"])
-        for index, sentences in enumerate(sentences_list):
-            token = split_by_token(sentences)
+        for index, sentence in enumerate(sentences_list):
+
+            token = split_by_token(sentence)
             data_frame = pd.DataFrame({
                 f"sentences_id": f"{index}",
                 f"words": token
@@ -50,18 +38,6 @@ def split_sentences_token(sentences_list):
 
     return main_dataframe
 
-def arg_config(config):
-    """ model configuration argument for training the model
-     args was return finally:returns
-     """
-    parameters = config["hyper-parameters"]
-    args = NERArgs()
-    args.num_train_epochs = parameters["num_train_epochs"]
-    args.learning_rate = parameters["learning_rate"]
-    args.overwrite_output_dir = True
-    args.train_batch_size = parameters["train_batch_size"]
-    args.eval_batch_size = parameters["eval_batch_size"]
-    return args
 
 def extract_token(sentences_list):
     """a dataframe with 2 columns and save to zip file in local path :returns"""
@@ -72,6 +48,11 @@ def extract_token(sentences_list):
                             )
     return token_dataframe.to_csv("token.zip", index=False, compression=compression_opts)
 
+
+with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
+
+    skills = linkdin_skills.read()
+    skills_list = skills.split("\n")
 
 
 
