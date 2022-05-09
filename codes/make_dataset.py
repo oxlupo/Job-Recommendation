@@ -49,11 +49,12 @@ def extract_token(sentences_list):
     return token_dataframe.to_csv("token.zip", index=False, compression=compression_opts)
 
 
-# with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
-#
-#     skills = linkdin_skills.read()
-#     skills_list = skills.split("\n")
-with open("About/zhiyunren.txt", "r", encoding="utf-8") as text:
+with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
+
+    skills = linkdin_skills.read()
+    skills_list = skills.split("\n")
+
+with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     text = text.read()
     sentences_list = split_by_sentences(text=text)
     extract_token(sentences_list)

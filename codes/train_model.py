@@ -72,7 +72,9 @@ def predication_model(model, sentences):
         raise Exception("TYPE-ERROR: only list and str format was acceptable")
 
 
-with open("config.json") as config:
+with open("config/config.json") as config:
     config = json.load(config)
     args = arg_config(config)
+
+
 
