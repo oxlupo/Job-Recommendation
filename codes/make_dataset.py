@@ -18,6 +18,8 @@ def split_by_sentences(text):
 def split_by_token(sentences):
     return word_tokenize(sentences)
 
+def make_pattern(skill):
+    pass
 
 def split_sentences_token(sentences_list):
     """sentences_list is arg :arg
@@ -39,14 +41,22 @@ def split_sentences_token(sentences_list):
         raise Exception("You must give the function a list of sentences")
 
     return main_dataframe
-def get_similar_word(sentences_list):
+def get_similar_word(sentences, skills):
     """use diff-lib to get most similar word to skill"""
     pattern = r'\bMachine Learning\b'
-    for sentences in sentences_list:
+    for skill in skills:
+        pass
+    if isinstance(sentences_list, list):
+        for sentences in sentences_list:
+            try:
+                match = re.findall(pattern=pattern, string=sentences)
+            except Exception:
+                print(Exception)
+    elif isinstance(sentences, str):
         try:
             match = re.findall(pattern=pattern, string=sentences)
-        except Exception as e:
-            print(e)
+        except Exception:
+            print(Exception)
         return match
 
 
@@ -68,7 +78,7 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
 with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     text = text.read()
     sentences_list = split_by_sentences(text=text)
-    skill = get_similar_word(sentences_list)
+    skill = get_similar_word(sentences=sentences_list, skills=skills_list)
     extract_token(sentences_list)
 
 
