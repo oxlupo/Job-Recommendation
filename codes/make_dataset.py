@@ -37,6 +37,9 @@ def split_sentences_token(sentences_list):
         raise Exception("You must give the function a list of sentences")
 
     return main_dataframe
+def get_similar_word(senteces_list):
+    """use diff-lib to get most similar word to skill"""
+    for sentence in senteces_list:
 
 
 def extract_token(sentences_list):
