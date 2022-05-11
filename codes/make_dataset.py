@@ -1,10 +1,12 @@
 import pandas as pd
 import logging
+import re
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
 from nltk import pos_tag, RegexpParser, tokenize
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
 from sklearn.preprocessing import LabelEncoder
 
 def split_by_sentences(text):
@@ -37,9 +39,15 @@ def split_sentences_token(sentences_list):
         raise Exception("You must give the function a list of sentences")
 
     return main_dataframe
-def get_similar_word(senteces_list):
+def get_similar_word(sentences_list):
     """use diff-lib to get most similar word to skill"""
-    for sentence in senteces_list:
+    pattern = r'\bMachine Learning\b'
+    for sentences in sentences_list:
+        try:
+            match = re.findall(pattern=pattern, string=sentences)
+        except Exception as e:
+            print(e)
+        return match
 
 
 def extract_token(sentences_list):
@@ -60,6 +68,7 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
 with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     text = text.read()
     sentences_list = split_by_sentences(text=text)
+    skill = get_similar_word(sentences_list)
     extract_token(sentences_list)
 
 
