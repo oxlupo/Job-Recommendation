@@ -1,3 +1,4 @@
+import mistune
 import pandas as pd
 import logging
 import re
@@ -15,54 +16,70 @@ def split_by_sentences(text):
     return sentences_list
 
 
+def find_labels(text, skills):
+    """find labels of each word"""
+    #TODO-01 write a code for finded skill- and o type
+    for skill in skills:
+        pass
+
 def split_by_token(sentences):
     return word_tokenize(sentences)
 
-def make_pattern(skill):
-    pass
 
-def split_sentences_token(sentences_list):
+def split_sentences_token(sentences_list, labels):
     """sentences_list is arg :arg
        a Data-frame with number of each sentence and token :returns
     """
     if isinstance(sentences_list, list):
         main_dataframe = pd.DataFrame({
 
-        }, columns=["sentences_id", "words"])
+        }, columns=["sentences_id", "words", "labels"])
         for index, sentence in enumerate(sentences_list):
 
             token = split_by_token(sentence)
             data_frame = pd.DataFrame({
                 f"sentences_id": f"{index}",
-                f"words": token
+                f"words": token,
+                "labels": "s"
             })
             main_dataframe = main_dataframe.append(data_frame, ignore_index=True)
     else:
         raise Exception("You must give the function a list of sentences")
 
     return main_dataframe
-def get_similar_word(sentences, skills):
+def get_similar_word(sentence, skills):
     """use diff-lib to get most similar word to skill"""
-    pattern = r'\bMachine Learning\b'
-    for skill in skills:
-        pass
-    if isinstance(sentences_list, list):
-        for sentences in sentences_list:
+    if isinstance(sentence, list):
+        final_list = []
+        for sentence in sentence:
+            for skill in skills:
+                try:
+                    pattern = rf"\b{skill}\b"
+                    match = re.findall(pattern=pattern, string=sentence)
+                    if not match == []:
+                        for sk in match:
+                            final_list.append(sk)
+                except Exception:
+                    continue
+    elif isinstance(sentence, str):
+        final_list = []
+        for skill in skills:
             try:
-                match = re.findall(pattern=pattern, string=sentences)
+                pattern = rf"\b{skill}\b"
+                match = re.findall(pattern=pattern, string=sentence)
+                if not match == []:
+                    for sk in match:
+                        final_list.append(sk)
             except Exception:
-                print(Exception)
-    elif isinstance(sentences, str):
-        try:
-            match = re.findall(pattern=pattern, string=sentences)
-        except Exception:
-            print(Exception)
-        return match
+                continue
+    else:
+        raise "acceptable only list and str type"
+    return list(set(final_list))
 
 
-def extract_token(sentences_list):
+def extract_token(sentences_list, labels):
     """a dataframe with 2 columns and save to zip file in local path :returns"""
-    token_dataframe = split_sentences_token(sentences_list)
+    token_dataframe = split_sentences_token(sentences_list, labels)
 
     compression_opts = dict(method="zip",
                             archive_name='sentences_token.csv',
@@ -74,11 +91,11 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
 
     skills = linkdin_skills.read()
     skills_list = skills.split("\n")
-
+    skills_list = list(map(lambda x: x.lower(), skills_list))
 with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
-    text = text.read()
+    text = text.read().lower()
     sentences_list = split_by_sentences(text=text)
-    skill = get_similar_word(sentences=sentences_list, skills=skills_list)
-    extract_token(sentences_list)
-
+    founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
+    labels = find_labels(text, founded_skill)
+    extract_token(sentences_list, founded_skill)
 
