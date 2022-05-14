@@ -1,12 +1,14 @@
 import pandas as pd
 import logging
 import re
+from nltk import tokenize
+from nltk.tokenize import word_tokenize
 from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
-from nltk import tokenize
-from nltk.tokenize import word_tokenize
+
+
 
 def split_by_sentences(text):
     """use NLTK Tokenize for split text file with sentences"""
@@ -18,12 +20,12 @@ def find_labels(text, skills):
     """find labels of each word"""
     text_token = word_tokenize(text)
 
-    data_frame = pd.DataFrame({"sentences_id": " ",
-                               "token": text_token,
+    data_frame = pd.DataFrame({"sentence_id": " ",
+                               "words": text_token,
                                "labels": " ",
                                })
 
-    token_index = [[index, tok] for index, tok in enumerate(list(data_frame["token"]))]
+    token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
     for skill in skills:
         skill_token = skill.split(" ")
         if len(skill_token) > 1:
@@ -115,14 +117,13 @@ def fill_sentences_id(dataframe, text):
         token_list = word_tokenize(token)
         for tok in token_list:
             sentences_id.append(index)
-    dataframe["sentences_id"] = sentences_id
+    dataframe["sentence_id"] = sentences_id
     return dataframe
 
 
 
 def extract_token(dataframe, labels):
     """a dataframe with 2 columns and save to zip file in local path :returns"""
-
 
     filepath = Path('dataset/ner/ner_skill.csv')
     filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -134,10 +135,13 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
     skills = linkdin_skills.read()
     skills_list = skills.split("\n")
     skills_list = list(map(lambda x: x.lower(), skills_list))
-with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
-    text = text.read().lower()
-    sentences_list = split_by_sentences(text=text)
-    founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
-    labels = find_labels(text, founded_skill)
-    final_dataframe = fill_sentences_id(labels, text)
-    extract_token(final_dataframe, founded_skill)
+
+
+def make_dataset():
+    with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
+        text = text.read().lower()
+        sentences_list = split_by_sentences(text=text)
+        founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
+        labels = find_labels(text, founded_skill)
+        final_dataframe = fill_sentences_id(labels, text)
+        extract_token(final_dataframe, founded_skill)
