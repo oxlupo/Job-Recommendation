@@ -1,14 +1,13 @@
-import mistune
 import pandas as pd
 import logging
 import re
+from nltk import tokenize
+from nltk.tokenize import word_tokenize
+
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
-from nltk import pos_tag, RegexpParser, tokenize
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from sklearn.preprocessing import LabelEncoder
+
 
 def split_by_sentences(text):
     """use NLTK Tokenize for split text file with sentences"""
@@ -19,39 +18,30 @@ def split_by_sentences(text):
 def find_labels(text, skills):
     """find labels of each word"""
     text_token = word_tokenize(text)
-
+    # TODO-01 write a code for found "skill" and "O" type
     data_frame = pd.DataFrame({"sentences_id": " ",
                                "token": text_token,
                                "labels": " ",
                                })
-
-    token_index = [[index, tok] for index, tok in enumerate(list(data_frame["token"]))]
+    labels_list = []
+    final_label_list = []
+    token_index = [(index, tok) for index, tok in enumerate(list(data_frame["token"]))]
     for skill in skills:
         skill_token = skill.split(" ")
         if len(skill_token) > 1:
-            for index, token in enumerate(token_index):
-                check_token = text_token[index: len(skill_token) + index]
+            for num in range(len(text_token)):
+                check_token = text_token[num: len(skill_token) + num]
                 check_str = " ".join(check_token)
-                interval = [index, len(skill_token)+index]
                 if skill == check_str:
                     first = skill_token[0]
                     labels = list(map(lambda x: [x, "B-SKILL"] if x == first else [x, "I-SKILL"], skill_token))
-                    for lab in labels:
-                        if labels[0] == lab:
-                            lab.append(interval[0])
-                        else:
-                            for inter in range(interval[0] + 1, interval[1]):
-                                lab.append(inter)
-
-                    for label in labels:
-                        data_frame.at[label[2], "labels"] = label[1]
+                    labels_list.append(labels)
 
         else:
-            for index in token_index:
-                if skill == index[1]:
-                    data_frame.at[index[0], "labels"] = "B-SKILL"
-        data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
-    return data_frame
+            labels_list.append([skill, "B-SKILL"])
+    for label in labels_list:
+        if not label in final_label_list:
+            final_label_list.append(label)
 
 
 def split_by_token(sentences):
@@ -67,7 +57,6 @@ def split_sentences_token(sentences_list, labels):
 
         }, columns=["sentences_id", "words", "labels"])
         for index, sentence in enumerate(sentences_list):
-
             token = split_by_token(sentence)
             data_frame = pd.DataFrame({
                 f"sentences_id": f"{index}",
@@ -79,6 +68,7 @@ def split_sentences_token(sentences_list, labels):
         raise Exception("You must give the function a list of sentences")
 
     return main_dataframe
+
 
 def get_similar_word(sentence, skills):
     """use diff-lib to get most similar word to skill"""
@@ -110,30 +100,17 @@ def get_similar_word(sentence, skills):
     return list(set(final_list))
 
 
-def fill_sentences_id(dataframe, text):
-    sentences_list = tokenize.sent_tokenize(text)
-    sentences_id = []
-    for index, token in enumerate(sentences_list):
-        token_list = word_tokenize(token)
-        for tok in token_list:
-            sentences_id.append(index)
-    dataframe["sentences_id"] = sentences_id
-    return dataframe
-
-
-
-def extract_token(dataframe, labels):
+def extract_token(sentences_list, labels):
     """a dataframe with 2 columns and save to zip file in local path :returns"""
-
+    token_dataframe = split_sentences_token(sentences_list, labels)
 
     compression_opts = dict(method="zip",
                             archive_name='sentences_token.csv',
                             )
-    return dataframe.to_csv("token.zip", index=False, compression=compression_opts)
+    return token_dataframe.to_csv("token.zip", index=False, compression=compression_opts)
 
 
 with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
-
     skills = linkdin_skills.read()
     skills_list = skills.split("\n")
     skills_list = list(map(lambda x: x.lower(), skills_list))
@@ -142,5 +119,4 @@ with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     sentences_list = split_by_sentences(text=text)
     founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
     labels = find_labels(text, founded_skill)
-    final_dataframe = fill_sentences_id(labels, text)
-    extract_token(final_dataframe, founded_skill)
+    extract_token(sentences_list, founded_skill)
