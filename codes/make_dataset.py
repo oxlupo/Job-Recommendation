@@ -1,5 +1,6 @@
 import mistune
 import pandas as pd
+import numpy as np
 import logging
 import re
 logging.basicConfig(level=logging.INFO)
@@ -12,22 +13,25 @@ from sklearn.preprocessing import LabelEncoder
 
 def split_by_sentences(text):
     """use NLTK Tokenize for split text file with sentences"""
+    main_df = pd.DataFrame({})
     sentences_list = tokenize.sent_tokenize(text)
-    return sentences_list
+    for index,sentence in enumerate(sentences_list):
+        token_list = word_tokenize(sentence)
+        sentence_df = pd.DataFrame({"sentences_id": index,
+                                  "words": token_list})
+        main_df = main_df.append(sentence_df)
+
+    return [sentences_list, main_df]
 
 
-def find_labels(text, skills):
+def find_labels(sentences_df, skills):
     """find labels of each word"""
-    text_token = word_tokenize(text)
 
-    data_frame = pd.DataFrame({"sentences_id": " ",
-                               "token": text_token,
-                               "labels": " ",
-                               })
-    labels_list = []
-    final_label_list = []
-    one_label_list = []
-    token_index = [[index, tok] for index, tok in enumerate(list(data_frame["token"]))]
+    sentences_df["labels"] = " "
+    data_frame = sentences_df
+    text_token = list(data_frame['words'])
+
+    token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
     for skill in skills:
         skill_token = skill.split(" ")
         if len(skill_token) > 1:
@@ -49,9 +53,13 @@ def find_labels(text, skills):
                         data_frame.at[label[2], "labels"] = label[1]
 
         else:
-            one_label_list.append([skill, "B-SKILL"])
 
+            for index in token_index:
+                if skill == index[1]:
+                    data_frame.at[index[0], "labels"] = "B-SKILL"
+    data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
 
+    return data_frame
 
 
 def split_by_token(sentences):
@@ -91,6 +99,7 @@ def get_similar_word(sentence, skills):
                     if not match == []:
                         for sk in match:
                             final_list.append(sk)
+                            print(sk)
                 except Exception:
                     continue
     elif isinstance(sentence, str):
@@ -126,8 +135,8 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
     skills_list = list(map(lambda x: x.lower(), skills_list))
 with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     text = text.read().lower()
-    sentences_list = split_by_sentences(text=text)
-    founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
-    labels = find_labels(text, founded_skill)
-    extract_token(sentences_list, founded_skill)
+    sentences_df = split_by_sentences(text=text)
+    founded_skill = get_similar_word(sentence=sentences_df[0], skills=skills_list)
+    labels = find_labels(sentences_df=sentences_df[1], skills=founded_skill)
+    print(labels)
 
