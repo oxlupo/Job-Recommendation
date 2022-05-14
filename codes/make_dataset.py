@@ -130,4 +130,3 @@ with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     labels = find_labels(text, founded_skill)
     print(labels)
     extract_token(sentences_list, founded_skill)
-
