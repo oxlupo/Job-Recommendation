@@ -24,9 +24,7 @@ def find_labels(text, skills):
                                "token": text_token,
                                "labels": " ",
                                })
-    labels_list = []
-    final_label_list = []
-    one_label_list = []
+
     token_index = [[index, tok] for index, tok in enumerate(list(data_frame["token"]))]
     for skill in skills:
         skill_token = skill.split(" ")
@@ -130,5 +128,6 @@ with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     sentences_list = split_by_sentences(text=text)
     founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
     labels = find_labels(text, founded_skill)
+    print(labels)
     extract_token(sentences_list, founded_skill)
 
