@@ -1,4 +1,4 @@
-,sentences_id,token,labels
+,sentence_id,words,labels
 0,0,machine,B-SKILL
 1,0,learning,I-SKILL
 2,0,engineer,O
@@ -69,7 +69,7 @@
 67,3,learning,I-SKILL
 68,3,and,O
 69,3,data,B-SKILL
-70,3,mining,B-SKILL
+70,3,mining,I-SKILL
 71,3,fields,O
 72,3,-,O
 73,3,4,O
