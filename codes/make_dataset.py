@@ -18,9 +18,32 @@ def split_by_sentences(text):
 
 def find_labels(text, skills):
     """find labels of each word"""
-    #TODO-01 write a code for finded skill- and o type
+    text_token = word_tokenize(text)
+    # TODO-01 write a code for found "skill" and "O" type
+    data_frame = pd.DataFrame({"sentences_id": " ",
+                               "token": text_token,
+                               "labels": " ",
+                               })
+    labels_list = []
+    final_label_list = []
+    token_index = [(index, tok) for index, tok in enumerate(list(data_frame["token"]))]
     for skill in skills:
-        pass
+        skill_token = skill.split(" ")
+        if len(skill_token) > 1:
+            for num in range(len(text_token)):
+                check_token = text_token[num: len(skill_token) + num]
+                check_str = " ".join(check_token)
+                if skill == check_str:
+                    first = skill_token[0]
+                    labels = list(map(lambda x: [x, "B-SKILL"] if x == first else [x, "I-SKILL"], skill_token))
+                    labels_list.append(labels)
+
+        else:
+            labels_list.append([skill, "B-SKILL"])
+    for label in labels_list:
+        if not label in final_label_list:
+            final_label_list.append(label)
+
 
 def split_by_token(sentences):
     return word_tokenize(sentences)
