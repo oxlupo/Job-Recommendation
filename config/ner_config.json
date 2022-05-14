@@ -1,6 +1,6 @@
 {
   "hyper-parameters":{
-          "num_train_epochs": 10,
+          "num_train_epochs": 50,
           "learning_rate": 1e-4,
           "overwrite_output_dir": "True",
           "train_batch_size": 32,
