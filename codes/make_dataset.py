@@ -131,4 +131,3 @@ with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
     labels = find_labels(text, founded_skill)
     extract_token(sentences_list, founded_skill)
-
