@@ -24,9 +24,7 @@ def find_labels(text, skills):
                                "token": text_token,
                                "labels": " ",
                                })
-    labels_list = []
-    final_label_list = []
-    one_label_list = []
+
     token_index = [[index, tok] for index, tok in enumerate(list(data_frame["token"]))]
     for skill in skills:
         skill_token = skill.split(" ")
@@ -55,6 +53,7 @@ def find_labels(text, skills):
         data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
     return data_frame
 
+
 def split_by_token(sentences):
     return word_tokenize(sentences)
 
@@ -80,6 +79,7 @@ def split_sentences_token(sentences_list, labels):
         raise Exception("You must give the function a list of sentences")
 
     return main_dataframe
+
 def get_similar_word(sentence, skills):
     """use diff-lib to get most similar word to skill"""
     if isinstance(sentence, list):
@@ -110,14 +110,26 @@ def get_similar_word(sentence, skills):
     return list(set(final_list))
 
 
-def extract_token(sentences_list, labels):
+def fill_sentences_id(dataframe, text):
+    sentences_list = tokenize.sent_tokenize(text)
+    sentences_id = []
+    for index, token in enumerate(sentences_list):
+        token_list = word_tokenize(token)
+        for tok in token_list:
+            sentences_id.append(index)
+    dataframe["sentences_id"] = sentences_id
+    return dataframe
+
+
+
+def extract_token(dataframe, labels):
     """a dataframe with 2 columns and save to zip file in local path :returns"""
-    token_dataframe = split_sentences_token(sentences_list, labels)
+
 
     compression_opts = dict(method="zip",
                             archive_name='sentences_token.csv',
                             )
-    return token_dataframe.to_csv("token.zip", index=False, compression=compression_opts)
+    return dataframe.to_csv("token.zip", index=False, compression=compression_opts)
 
 
 with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
@@ -130,4 +142,5 @@ with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     sentences_list = split_by_sentences(text=text)
     founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
     labels = find_labels(text, founded_skill)
-    extract_token(sentences_list, founded_skill)
+    final_dataframe = fill_sentences_id(labels, text)
+    extract_token(final_dataframe, founded_skill)
