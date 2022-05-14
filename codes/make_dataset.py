@@ -4,10 +4,10 @@ import re
 from nltk import tokenize
 from nltk.tokenize import word_tokenize
 from pathlib import Path
+from termcolor import colored
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
-
 
 
 def split_by_sentences(text):
@@ -92,6 +92,7 @@ def get_similar_word(sentence, skills):
                     if not match == []:
                         for sk in match:
                             final_list.append(sk)
+                            print(colored(f"skill was founded >>>>> [{sk}]", 'green'))
                 except Exception:
                     continue
     elif isinstance(sentence, str):
@@ -136,12 +137,12 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
     skills_list = skills.split("\n")
     skills_list = list(map(lambda x: x.lower(), skills_list))
 
-
-def make_dataset():
-    with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
+def make_dataset(text_name):
+    with open(f"dataset/About/{text_name}", "r", encoding="utf-8") as text:
         text = text.read().lower()
         sentences_list = split_by_sentences(text=text)
         founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
+        print(colored(f"the list of founded skill is >>>>> {founded_skill}", 'yellow'))
         labels = find_labels(text, founded_skill)
         final_dataframe = fill_sentences_id(labels, text)
         extract_token(final_dataframe, founded_skill)
