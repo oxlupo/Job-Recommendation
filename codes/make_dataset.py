@@ -1,14 +1,12 @@
-import mistune
 import pandas as pd
 import logging
 import re
+from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
-from nltk import pos_tag, RegexpParser, tokenize
+from nltk import tokenize
 from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from sklearn.preprocessing import LabelEncoder
 
 def split_by_sentences(text):
     """use NLTK Tokenize for split text file with sentences"""
@@ -126,10 +124,9 @@ def extract_token(dataframe, labels):
     """a dataframe with 2 columns and save to zip file in local path :returns"""
 
 
-    compression_opts = dict(method="zip",
-                            archive_name='sentences_token.csv',
-                            )
-    return dataframe.to_csv("token.zip", index=False, compression=compression_opts)
+    filepath = Path('dataset/ner/ner_skill.csv')
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    return dataframe.to_csv(filepath)
 
 
 with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
