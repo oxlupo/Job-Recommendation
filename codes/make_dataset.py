@@ -1,13 +1,14 @@
+import mistune
 import pandas as pd
 import logging
 import re
-from nltk import tokenize
-from nltk.tokenize import word_tokenize
-
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
-
+from nltk import pos_tag, RegexpParser, tokenize
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from sklearn.preprocessing import LabelEncoder
 
 def split_by_sentences(text):
     """use NLTK Tokenize for split text file with sentences"""
@@ -66,6 +67,7 @@ def split_sentences_token(sentences_list, labels):
 
         }, columns=["sentences_id", "words", "labels"])
         for index, sentence in enumerate(sentences_list):
+
             token = split_by_token(sentence)
             data_frame = pd.DataFrame({
                 f"sentences_id": f"{index}",
@@ -77,8 +79,6 @@ def split_sentences_token(sentences_list, labels):
         raise Exception("You must give the function a list of sentences")
 
     return main_dataframe
-
-
 def get_similar_word(sentence, skills):
     """use diff-lib to get most similar word to skill"""
     if isinstance(sentence, list):
@@ -120,6 +120,7 @@ def extract_token(sentences_list, labels):
 
 
 with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
+
     skills = linkdin_skills.read()
     skills_list = skills.split("\n")
     skills_list = list(map(lambda x: x.lower(), skills_list))
@@ -129,3 +130,4 @@ with open("dataset/About/zhiyunren.txt", "r", encoding="utf-8") as text:
     founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
     labels = find_labels(text, founded_skill)
     extract_token(sentences_list, founded_skill)
+
