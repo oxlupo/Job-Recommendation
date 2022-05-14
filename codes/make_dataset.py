@@ -19,30 +19,39 @@ def split_by_sentences(text):
 def find_labels(text, skills):
     """find labels of each word"""
     text_token = word_tokenize(text)
-    # TODO-01 write a code for found "skill" and "O" type
+
     data_frame = pd.DataFrame({"sentences_id": " ",
                                "token": text_token,
                                "labels": " ",
                                })
     labels_list = []
     final_label_list = []
-    token_index = [(index, tok) for index, tok in enumerate(list(data_frame["token"]))]
+    one_label_list = []
+    token_index = [[index, tok] for index, tok in enumerate(list(data_frame["token"]))]
     for skill in skills:
         skill_token = skill.split(" ")
         if len(skill_token) > 1:
-            for num in range(len(text_token)):
-                check_token = text_token[num: len(skill_token) + num]
+            for index, token in enumerate(token_index):
+                check_token = text_token[index: len(skill_token) + index]
                 check_str = " ".join(check_token)
+                interval = [index, len(skill_token)+index]
                 if skill == check_str:
                     first = skill_token[0]
                     labels = list(map(lambda x: [x, "B-SKILL"] if x == first else [x, "I-SKILL"], skill_token))
-                    labels_list.append(labels)
+                    for lab in labels:
+                        if labels[0] == lab:
+                            lab.append(interval[0])
+                        else:
+                            for inter in range(interval[0] + 1, interval[1]):
+                                lab.append(inter)
+
+                    for label in labels:
+                        data_frame.at[label[2], "labels"] = label[1]
 
         else:
-            labels_list.append([skill, "B-SKILL"])
-    for label in labels_list:
-        if not label in final_label_list:
-            final_label_list.append(label)
+            one_label_list.append([skill, "B-SKILL"])
+
+
 
 
 def split_by_token(sentences):
