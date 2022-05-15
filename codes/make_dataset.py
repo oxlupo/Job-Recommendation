@@ -5,6 +5,8 @@ from nltk import tokenize
 from nltk.tokenize import word_tokenize
 from pathlib import Path
 from termcolor import colored
+import tqdm
+from tqdm.auto import tqdm
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
@@ -26,6 +28,7 @@ def find_labels(text, skills):
                                })
 
     token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
+
     for skill in skills:
         skill_token = skill.split(" ")
         if len(skill_token) > 1:
@@ -50,7 +53,8 @@ def find_labels(text, skills):
             for index in token_index:
                 if skill == index[1]:
                     data_frame.at[index[0], "labels"] = "B-SKILL"
-        data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
+
+    data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
     return data_frame
 
 
@@ -80,11 +84,12 @@ def split_sentences_token(sentences_list, labels):
 
     return main_dataframe
 
-def get_similar_word(sentence, skills):
+def get_similar_word(sentences, skills):
     """use diff-lib to get most similar word to skill"""
-    if isinstance(sentence, list):
+    if isinstance(sentences, list):
         final_list = []
-        for sentence in sentence:
+
+        for sentence in tqdm(sentences, total=len(sentences),):
             for skill in skills:
                 try:
                     pattern = rf"\b{skill}\b"
@@ -95,12 +100,13 @@ def get_similar_word(sentence, skills):
                             print(colored(f"skill was founded >>>>> [{sk}]", 'green'))
                 except Exception:
                     continue
-    elif isinstance(sentence, str):
+
+    elif isinstance(sentences, str):
         final_list = []
         for skill in skills:
             try:
                 pattern = rf"\b{skill}\b"
-                match = re.findall(pattern=pattern, string=sentence)
+                match = re.findall(pattern=pattern, string=sentences)
                 if not match == []:
                     for sk in match:
                         final_list.append(sk)
@@ -118,9 +124,11 @@ def fill_sentences_id(dataframe, text):
         token_list = word_tokenize(token)
         for tok in token_list:
             sentences_id.append(index)
-    dataframe["sentence_id"] = sentences_id
+    try:
+        dataframe["sentence_id"] = sentences_id
+    except Exception as e:
+        print(e)
     return dataframe
-
 
 
 def extract_token(dataframe, labels):
@@ -137,12 +145,14 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
     skills_list = skills.split("\n")
     skills_list = list(map(lambda x: x.lower(), skills_list))
 
+
 def make_dataset(text_name):
     with open(f"dataset/About/{text_name}", "r", encoding="utf-8") as text:
         text = text.read().lower()
         sentences_list = split_by_sentences(text=text)
-        founded_skill = get_similar_word(sentence=sentences_list, skills=skills_list)
-        print(colored(f"the list of founded skill is >>>>> {founded_skill}", 'yellow'))
+        founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
         labels = find_labels(text, founded_skill)
         final_dataframe = fill_sentences_id(labels, text)
         extract_token(final_dataframe, founded_skill)
+
+make_dataset("summary.txt")
