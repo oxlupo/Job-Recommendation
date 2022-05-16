@@ -188,7 +188,7 @@ def extract_token(dataframe):
     return dataframe.to_csv(filepath)
 
 
-with open('dataset/linkdin-skills/skill.txt', "r", encoding="utf-8") as linkdin_skills:
+with open('dataset/linkedin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
 
     skills_list = linkdin_skills.read()
     skills_list = skills_list.split("\n")
@@ -202,23 +202,14 @@ def make_dataset(text_name):
     with open(f"dataset/About/{text_name}", "r", encoding="utf-8") as text:
         text = text.read().lower()
         sentences_list = split_by_sentences(text=text)
-        text_token = word_tokenize(text)
         start_found = time.process_time()
         founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
         print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
         labels = find_labels(sentences_list, founded_skill)
-        final_dataframe = fill_sentences_id(labels, text)
-        extract_token(final_dataframe)
-
-make_dataset("camharvey.txt")
+        extract_token(labels)
 
 
-ner = pd.read_csv('ner_skill.csv')
-with open("dataset/About/summary.txt") as text:
-    data = text.read().lower()
-
-
-def skill_replace():
+def skill_replace(data, ner):
     not_in_list, final_list = find_accuracy(dataframe=ner, skills_list=skills_list)
     sentences_list = split_by_sentences(text=data)
     iter_not_in_list = iter(not_in_list)
@@ -238,12 +229,9 @@ def skill_replace():
 
                         generate_sentence.append(sentence)
                         print(colored(sentence, "green"))
-
-            a = 2
-        a = 2
-    a = 2
+    return sk
 
 
-
+make_dataset(text_name="summary.txt")
 
 
