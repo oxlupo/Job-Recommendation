@@ -1,3 +1,4 @@
+import time
 import pandas as pd
 import logging
 import re
@@ -10,6 +11,42 @@ from tqdm.auto import tqdm
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
+
+
+def find_accuracy(dataframe, skills_list):
+    """a percentage between [0,100]:return"""
+    labels = list(dataframe["labels"])
+    final_list = []
+    for index, label in enumerate(labels):
+        if label == "B-SKILL":
+            skill_list = []
+            string_skill = ""
+
+            word = dataframe.at[index, "words"]
+            skill_list.append(word)
+            count = 1
+            while True:
+
+                if labels[index + count] == "I-SKILL":
+
+                    i_skill = dataframe.at[(index+count), 'words']
+                    count += 1
+                    if not isinstance(i_skill, float):
+                        skill_list.append(i_skill)
+                else:
+                    break
+
+            string_skill = " ".join(skill_list)
+            final_list.append(string_skill)
+    labels_count = len(list(set(final_list)))
+    print(colored(f"the number of labels is >>>>>>> {labels_count}", "green"))
+    skills_count = len(skills_list)
+    print(colored(f"the number of labels was founded is >>>>>>> {skills_count}", "green"))
+    not_in_list = [x for x in skills_list if not x in list(set(final_list))]
+
+    return not_in_list
+
+
 
 
 def split_by_sentences(text):
@@ -98,9 +135,8 @@ def get_similar_word(sentences, skills):
                         for sk in match:
                             final_list.append(sk)
                             print(colored(f"skill was founded >>>>> [{sk}]", 'green'))
-                except Exception:
+                except Exception as e:
                     continue
-
     elif isinstance(sentences, str):
         final_list = []
         for skill in skills:
@@ -120,18 +156,22 @@ def get_similar_word(sentences, skills):
 def fill_sentences_id(dataframe, text):
     sentences_list = tokenize.sent_tokenize(text)
     sentences_id = []
+    sen = []
     for index, token in enumerate(sentences_list):
         token_list = word_tokenize(token)
         for tok in token_list:
             sentences_id.append(index)
+            sen.append(tok)
+    series = pd.Series(sentences_id)
+
     try:
-        dataframe["sentence_id"] = sentences_id
+        dataframe["sentence_id"] = series
     except Exception as e:
         print(e)
     return dataframe
 
 
-def extract_token(dataframe, labels):
+def extract_token(dataframe):
     """a dataframe with 2 columns and save to zip file in local path :returns"""
 
     filepath = Path('dataset/ner/ner_skill.csv')
@@ -147,12 +187,37 @@ with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") a
 
 
 def make_dataset(text_name):
+    """you can call this function for make your dataset for train your model
+    and return a csv file in folder of dataset/ner/ner_skill.csv:return
+    """
     with open(f"dataset/About/{text_name}", "r", encoding="utf-8") as text:
         text = text.read().lower()
+        start_found = time.process_time()
         sentences_list = split_by_sentences(text=text)
+        print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
         founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
         labels = find_labels(text, founded_skill)
         final_dataframe = fill_sentences_id(labels, text)
-        extract_token(final_dataframe, founded_skill)
+        extract_token(final_dataframe)
 
-make_dataset("summary.txt")
+# make_dataset("test.txt")
+ner = pd.read_csv('dataset/About/ner_skill.csv')
+
+percentage = find_accuracy(dataframe=ner, skills_list=skills_list)
+print(percentage)
+# ner = ner.drop(columns="id")
+
+# data = open("dataset/About/summary.txt")
+# data = data.read()
+# fill_sentences_id(text=data, dataframe=ner)
+# print(ner.head(130))
+# ner["words"] = ner["words"].fillna("missing")
+# for i in range(len(ner)):
+#     if ner.at[i, "words"] == "missing":
+#         ner.drop(index=i)
+# print(ner.head(130))
+# ner = ner.drop(columns="ss")
+# extract_token(dataframe=ner)
+
+
+
