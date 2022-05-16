@@ -128,15 +128,16 @@ def get_similar_word(sentences, skills):
     if isinstance(sentences, list):
         final_list = []
 
-        for sentence in tqdm(sentences, total=len(sentences),):
+        for sentence in tqdm(sentences, total=len(sentences)):
             for skill in skills:
                 try:
                     pattern = rf"\b{skill}\b"
                     match = re.findall(pattern=pattern, string=sentence)
                     if not match == []:
                         for sk in match:
-                            final_list.append(sk)
-                            print(colored(f"skill was founded >>>>> [{sk}]", 'green'))
+                            if not sk in final_list:
+                                final_list.append(sk)
+                                print(colored(f"skill was founded >>>>> [{sk}]", 'green'))
                 except Exception as e:
                     continue
     elif isinstance(sentences, str):
@@ -152,8 +153,7 @@ def get_similar_word(sentences, skills):
                 continue
     else:
         raise "acceptable only list and str type"
-    return list(set(final_list))
-
+    return final_list
 
 def fill_sentences_id(dataframe, text):
     sentences_list = tokenize.sent_tokenize(text)
@@ -181,10 +181,10 @@ def extract_token(dataframe):
     return dataframe.to_csv(filepath)
 
 
-with open('dataset/linkdin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
+with open('dataset/linkdin-skills/skill.txt', "r", encoding="utf-8") as linkdin_skills:
 
-    skills = linkdin_skills.read()
-    skills_list = skills.split("\n")
+    skills_list = linkdin_skills.read()
+    skills_list = skills_list.split("\n")
     skills_list = list(map(lambda x: x.lower(), skills_list))
 
 
@@ -194,8 +194,8 @@ def make_dataset(text_name):
     """
     with open(f"dataset/About/{text_name}", "r", encoding="utf-8") as text:
         text = text.read().lower()
-        start_found = time.process_time()
         sentences_list = split_by_sentences(text=text)
+        start_found = time.process_time()
         founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
         print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
         labels = find_labels(text, founded_skill)
