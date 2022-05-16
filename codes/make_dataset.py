@@ -99,6 +99,8 @@ def find_labels(sentences_list, skills):
 
         # data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
         data_frame["labels"] = data_frame["labels"].replace(r'E', "O", regex=True)
+        if len(set(data_frame['labels'])) == 1:
+            continue
         main_dataframe = main_dataframe.append(data_frame)
 
     return main_dataframe
