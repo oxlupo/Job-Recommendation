@@ -12894,6 +12894,7 @@ Res
 Rescue Diving
 Research
 Research Ethics
+Research Associate
 Reseller/VAR Networks
 Reservoir Evaluation
 Reservoir Simulation
@@ -14664,6 +14665,7 @@ Strategic Thinking
 Strategy
 Strategy Alignment
 Strategy Execution
+Strategy Advisor
 Street Dance
 Street Furniture
 Strength Training
