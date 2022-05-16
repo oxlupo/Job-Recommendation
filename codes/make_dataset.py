@@ -58,16 +58,16 @@ def split_by_sentences(text):
     return sentences_list
 
 
-def find_labels(text_token,sentences_list, skills):
+def find_labels(sentences_list, skills):
     """find labels of each word"""
     # TODO-01: make step for loop in sentences
-    main_dataframe = {"sentence_id": "",
-                                   "words": "",
-                                   "labels": "",}
 
-    for sentence in sentences_list:
-        data_frame = pd.DataFrame({"sentence_id": " ",
-                                   "words": word_tokenize(sentence),
+    main_dataframe = pd.DataFrame({})
+
+    for index, sentence in enumerate(sentences_list):
+        text_token = word_tokenize(sentence)
+        data_frame = pd.DataFrame({"sentence_id": index,
+                                   "words": text_token,
                                    "labels": "E",
                                    })
         token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
@@ -100,7 +100,8 @@ def find_labels(text_token,sentences_list, skills):
         # data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
         data_frame["labels"] = data_frame["labels"].replace(r'E', "O", regex=True)
         main_dataframe = main_dataframe.append(data_frame)
-    return data_frame
+
+    return main_dataframe
 
 
 def split_by_token(sentences):
@@ -205,7 +206,7 @@ def make_dataset(text_name):
         start_found = time.process_time()
         founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
         print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
-        labels = find_labels(text_token, founded_skill)
+        labels = find_labels(sentences_list, founded_skill)
         final_dataframe = fill_sentences_id(labels, text)
         extract_token(final_dataframe)
 
