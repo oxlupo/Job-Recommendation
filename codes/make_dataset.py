@@ -15,6 +15,7 @@ transformers_logger.setLevel(logging.WARNING)
 
 def find_accuracy(dataframe, skills_list):
     """a percentage between [0,100]:return"""
+    # labels format is ["O", "B-SKILL" , "O-SKILL"]
     labels = list(dataframe["labels"])
     final_list = []
     for index, label in enumerate(labels):
@@ -195,31 +196,45 @@ def make_dataset(text_name):
         text = text.read().lower()
         start_found = time.process_time()
         sentences_list = split_by_sentences(text=text)
-        print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
         founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
+        print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
         labels = find_labels(text, founded_skill)
         final_dataframe = fill_sentences_id(labels, text)
         extract_token(final_dataframe)
 
-# make_dataset("test.txt")
+make_dataset("camharvey.txt")
+
 
 ner = pd.read_csv('ner_skill.csv')
 with open("dataset/About/summary.txt") as text:
-    data = text.read()
+    data = text.read().lower()
 
-not_in_list, skills = find_accuracy(dataframe=ner, skills_list=skills_list)
-sentences_list = split_by_sentences(text=data)
-iter_not_in_list = iter(not_in_list)
 
-for sentence in sentences_list:
-    skill_check = []
-    for skill in skills:
-        pattern = rf"\b{skill}\b"
-        match = re.findall(pattern=pattern, string=sentence)
-        if not match == []:
-            for sk in match:
-                skill_check.append(sk)
-                sentence = sentence.replace(sk, next(iter_not_in_list))
+def skill_replace():
+    not_in_list, final_list = find_accuracy(dataframe=ner, skills_list=skills_list)
+    sentences_list = split_by_sentences(text=data)
+    iter_not_in_list = iter(not_in_list)
+    generate_sentence = []
+    for sentence in sentences_list:
+        skill_check = []
+        for skill in final_list:
+            pattern = rf"\b{skill}\b"
+            match = re.findall(pattern=pattern, string=sentence)
+            if not match == []:
+                for sk in match:
+                    for it in range(len(match)):
+                        print(sentence)
+                        if not sk in skill_check:
+                            skill_check.append(sk)
+                            sentence = sentence.replace(sk, next(iter_not_in_list))
+
+                        generate_sentence.append(sentence)
+                        print(colored(sentence, "green"))
+
+            a = 2
+        a = 2
+    a = 2
+
 
 
 
