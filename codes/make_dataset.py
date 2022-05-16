@@ -39,12 +39,13 @@ def find_accuracy(dataframe, skills_list):
             string_skill = " ".join(skill_list)
             final_list.append(string_skill)
     labels_count = len(list(set(final_list)))
-    print(colored(f"the number of labels is >>>>>>> {labels_count}", "green"))
     skills_count = len(skills_list)
-    print(colored(f"the number of labels was founded is >>>>>>> {skills_count}", "green"))
-    not_in_list = [x for x in skills_list if not x in list(set(final_list))]
+    print(colored(f"the number of labels is >>>>>>> {skills_count}", "green"))
+    print(colored(f"the number of labels was founded is >>>>>>> {labels_count}", "green"))
+    print(colored(f">>>>>>> [{skills_count-labels_count}] skill was not found ", "red"))
+    not_in_list = [x for x in skills_list if not x in final_list]
 
-    return not_in_list
+    return not_in_list, list(set(final_list))
 
 
 
@@ -201,23 +202,25 @@ def make_dataset(text_name):
         extract_token(final_dataframe)
 
 # make_dataset("test.txt")
-ner = pd.read_csv('dataset/About/ner_skill.csv')
 
-percentage = find_accuracy(dataframe=ner, skills_list=skills_list)
-print(percentage)
-# ner = ner.drop(columns="id")
+ner = pd.read_csv('ner_skill.csv')
+with open("dataset/About/summary.txt") as text:
+    data = text.read()
 
-# data = open("dataset/About/summary.txt")
-# data = data.read()
-# fill_sentences_id(text=data, dataframe=ner)
-# print(ner.head(130))
-# ner["words"] = ner["words"].fillna("missing")
-# for i in range(len(ner)):
-#     if ner.at[i, "words"] == "missing":
-#         ner.drop(index=i)
-# print(ner.head(130))
-# ner = ner.drop(columns="ss")
-# extract_token(dataframe=ner)
+not_in_list, skills = find_accuracy(dataframe=ner, skills_list=skills_list)
+sentences_list = split_by_sentences(text=data)
+iter_not_in_list = iter(not_in_list)
+
+for sentence in sentences_list:
+    skill_check = []
+    for skill in skills:
+        pattern = rf"\b{skill}\b"
+        match = re.findall(pattern=pattern, string=sentence)
+        if not match == []:
+            for sk in match:
+                skill_check.append(sk)
+                sentence = sentence.replace(sk, next(iter_not_in_list))
+
 
 
 
