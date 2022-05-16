@@ -57,9 +57,9 @@ def split_by_sentences(text):
     return sentences_list
 
 
-def find_labels(text, skills):
+def find_labels(text_token, skills):
     """find labels of each word"""
-    text_token = word_tokenize(text)
+
 
     data_frame = pd.DataFrame({"sentence_id": " ",
                                "words": text_token,
@@ -195,10 +195,11 @@ def make_dataset(text_name):
     with open(f"dataset/About/{text_name}", "r", encoding="utf-8") as text:
         text = text.read().lower()
         sentences_list = split_by_sentences(text=text)
+        text_token = word_tokenize(text)
         start_found = time.process_time()
         founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
         print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
-        labels = find_labels(text, founded_skill)
+        labels = find_labels(text_token, founded_skill)
         final_dataframe = fill_sentences_id(labels, text)
         extract_token(final_dataframe)
 
