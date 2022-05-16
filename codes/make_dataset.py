@@ -2,6 +2,7 @@ import time
 import pandas as pd
 import logging
 import re
+import numpy as np
 from nltk import tokenize
 from nltk.tokenize import word_tokenize
 from pathlib import Path
@@ -57,43 +58,48 @@ def split_by_sentences(text):
     return sentences_list
 
 
-def find_labels(text_token, skills):
+def find_labels(text_token,sentences_list, skills):
     """find labels of each word"""
+    # TODO-01: make step for loop in sentences
+    main_dataframe = {"sentence_id": "",
+                                   "words": "",
+                                   "labels": "",}
 
+    for sentence in sentences_list:
+        data_frame = pd.DataFrame({"sentence_id": " ",
+                                   "words": word_tokenize(sentence),
+                                   "labels": "E",
+                                   })
+        token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
 
-    data_frame = pd.DataFrame({"sentence_id": " ",
-                               "words": text_token,
-                               "labels": " ",
-                               })
+        for skill in skills:
+            skill_token = skill.split(" ")
+            if len(skill_token) > 1:
+                for index, token in enumerate(token_index):
+                    check_token = text_token[index: len(skill_token) + index]
+                    check_str = " ".join(check_token)
+                    interval = [index, len(skill_token)+index]
+                    if skill == check_str:
+                        first = skill_token[0]
+                        labels = list(map(lambda x: [x, "B-SKILL"] if x == first else [x, "I-SKILL"], skill_token))
+                        for lab in labels:
+                            if labels[0] == lab:
+                                lab.append(interval[0])
+                            else:
+                                for inter in range(interval[0] + 1, interval[1]):
+                                    lab.append(inter)
 
-    token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
+                        for label in labels:
+                            data_frame.at[label[2], "labels"] = label[1]
 
-    for skill in skills:
-        skill_token = skill.split(" ")
-        if len(skill_token) > 1:
-            for index, token in enumerate(token_index):
-                check_token = text_token[index: len(skill_token) + index]
-                check_str = " ".join(check_token)
-                interval = [index, len(skill_token)+index]
-                if skill == check_str:
-                    first = skill_token[0]
-                    labels = list(map(lambda x: [x, "B-SKILL"] if x == first else [x, "I-SKILL"], skill_token))
-                    for lab in labels:
-                        if labels[0] == lab:
-                            lab.append(interval[0])
-                        else:
-                            for inter in range(interval[0] + 1, interval[1]):
-                                lab.append(inter)
+            else:
+                for word in token_index:
+                    if skill == word[1] and data_frame.at[word[0], "labels"] == "E":
+                        data_frame.at[word[0], "labels"] = "B-SKILL"
 
-                    for label in labels:
-                        data_frame.at[label[2], "labels"] = label[1]
-
-        else:
-            for index in token_index:
-                if skill == index[1]:
-                    data_frame.at[index[0], "labels"] = "B-SKILL"
-
-    data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
+        # data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
+        data_frame["labels"] = data_frame["labels"].replace(r'E', "O", regex=True)
+        main_dataframe = main_dataframe.append(data_frame)
     return data_frame
 
 
