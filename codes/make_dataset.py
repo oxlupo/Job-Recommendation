@@ -58,7 +58,7 @@ def split_by_sentences(text):
     return sentences_list
 
 
-def find_labels(sentences, skills):
+def find_labels(sentences, skills, index_sentence):
     """find labels of each word"""
     # TODO-01: make step for loop in sentences
 
@@ -104,7 +104,7 @@ def find_labels(sentences, skills):
             main_dataframe = main_dataframe.append(data_frame)
     if isinstance(sentences, str):
         text_token = word_tokenize(sentences)
-        main_dataframe = pd.DataFrame({"sentence_id": index,
+        data_frame = pd.DataFrame({"sentence_id": index_sentence,
                                        "words": text_token,
                                        "labels": "E",
                                    })
@@ -132,10 +132,8 @@ def find_labels(sentences, skills):
                     if skill == word[1] and data_frame.at[word[0], "labels"] == "E":
                         data_frame.at[word[0], "labels"] = "B-SKILL"
         data_frame["labels"] = data_frame["labels"].replace(r'E', "O", regex=True)
-        if len(set(data_frame['labels'])) == 1:
-            pass
 
-    return main_dataframe
+    return data_frame
 
 
 def split_by_token(sentences):
@@ -237,13 +235,14 @@ def make_dataset(text_name):
         text = text.read().lower()
         sentences_list = split_by_sentences(text=text)
         start_found = time.process_time()
-        for sentence in sentences_list:
-
+        main_dataframe = pd.DataFrame({})
+        for index, sentence in enumerate(sentences_list):
             founded_skill = get_similar_word(sentences=sentence, skills=skills_list)
-            labels = find_labels(sentence, founded_skill)
-
-        extract_token(labels)
+            if not founded_skill == []:
+                labels = find_labels(sentence, founded_skill, index_sentence=index)
+                main_dataframe = main_dataframe.append(labels)
         print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
+        extract_token(labels)
 
 
 def skill_replace(data, ner):
