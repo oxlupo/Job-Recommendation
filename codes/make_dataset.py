@@ -58,27 +58,64 @@ def split_by_sentences(text):
     return sentences_list
 
 
-def find_labels(sentences_list, skills):
+def find_labels(sentences, skills):
     """find labels of each word"""
     # TODO-01: make step for loop in sentences
 
     main_dataframe = pd.DataFrame({})
+    if isinstance(sentences, list):
+        for index, sentence in enumerate(sentences):
+            text_token = word_tokenize(sentence)
+            data_frame = pd.DataFrame({"sentence_id": index,
+                                       "words": text_token,
+                                       "labels": "E",
+                                       })
+            token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
 
-    for index, sentence in enumerate(sentences_list):
-        text_token = word_tokenize(sentence)
-        data_frame = pd.DataFrame({"sentence_id": index,
-                                   "words": text_token,
-                                   "labels": "E",
+            for skill in skills:
+                skill_token = skill.split(" ")
+                if len(skill_token) > 1:
+                    for index, token in enumerate(token_index):
+                        check_token = text_token[index: len(skill_token) + index]
+                        check_str = " ".join(check_token)
+                        interval = [index, len(skill_token)+index]
+                        if skill == check_str:
+                            first = skill_token[0]
+                            labels = list(map(lambda x: [x, "B-SKILL"] if x == first else [x, "I-SKILL"], skill_token))
+                            for lab in labels:
+                                if labels[0] == lab:
+                                    lab.append(interval[0])
+                                else:
+                                    for inter in range(interval[0] + 1, interval[1]):
+                                        lab.append(inter)
+
+                            for label in labels:
+                                data_frame.at[label[2], "labels"] = label[1]
+
+                else:
+                    for word in token_index:
+                        if skill == word[1] and data_frame.at[word[0], "labels"] == "E":
+                            data_frame.at[word[0], "labels"] = "B-SKILL"
+
+            # data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
+            data_frame["labels"] = data_frame["labels"].replace(r'E', "O", regex=True)
+            if len(set(data_frame['labels'])) == 1:
+                continue
+            main_dataframe = main_dataframe.append(data_frame)
+    if isinstance(sentences, str):
+        text_token = word_tokenize(sentences)
+        main_dataframe = pd.DataFrame({"sentence_id": index,
+                                       "words": text_token,
+                                       "labels": "E",
                                    })
         token_index = [[index, tok] for index, tok in enumerate(list(data_frame["words"]))]
-
         for skill in skills:
             skill_token = skill.split(" ")
             if len(skill_token) > 1:
                 for index, token in enumerate(token_index):
                     check_token = text_token[index: len(skill_token) + index]
                     check_str = " ".join(check_token)
-                    interval = [index, len(skill_token)+index]
+                    interval = [index, len(skill_token) + index]
                     if skill == check_str:
                         first = skill_token[0]
                         labels = list(map(lambda x: [x, "B-SKILL"] if x == first else [x, "I-SKILL"], skill_token))
@@ -88,20 +125,15 @@ def find_labels(sentences_list, skills):
                             else:
                                 for inter in range(interval[0] + 1, interval[1]):
                                     lab.append(inter)
-
                         for label in labels:
                             data_frame.at[label[2], "labels"] = label[1]
-
             else:
                 for word in token_index:
                     if skill == word[1] and data_frame.at[word[0], "labels"] == "E":
                         data_frame.at[word[0], "labels"] = "B-SKILL"
-
-        # data_frame["labels"] = data_frame["labels"].replace(r'^\s*$', "O", regex=True)
         data_frame["labels"] = data_frame["labels"].replace(r'E', "O", regex=True)
         if len(set(data_frame['labels'])) == 1:
-            continue
-        main_dataframe = main_dataframe.append(data_frame)
+            pass
 
     return main_dataframe
 
@@ -136,7 +168,6 @@ def get_similar_word(sentences, skills):
     """use diff-lib to get most similar word to skill"""
     if isinstance(sentences, list):
         final_list = []
-
         for sentence in tqdm(sentences, total=len(sentences)):
             for skill in skills:
                 try:
@@ -157,7 +188,8 @@ def get_similar_word(sentences, skills):
                 match = re.findall(pattern=pattern, string=sentences)
                 if not match == []:
                     for sk in match:
-                        final_list.append(sk)
+                        if not sk in final_list:
+                            final_list.append(sk)
             except Exception:
                 continue
     else:
@@ -207,10 +239,9 @@ def make_dataset(text_name):
         start_found = time.process_time()
         for sentence in sentences_list:
 
+            founded_skill = get_similar_word(sentences=sentence, skills=skills_list)
+            labels = find_labels(sentence, founded_skill)
 
-            founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
-
-            labels = find_labels(sentences_list, founded_skill)
         extract_token(labels)
         print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
 
