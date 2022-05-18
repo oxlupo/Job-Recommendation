@@ -205,10 +205,14 @@ def make_dataset(text_name):
         text = text.read().lower()
         sentences_list = split_by_sentences(text=text)
         start_found = time.process_time()
-        founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
-        print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
-        labels = find_labels(sentences_list, founded_skill)
+        for sentence in sentences_list:
+
+
+            founded_skill = get_similar_word(sentences=sentences_list, skills=skills_list)
+
+            labels = find_labels(sentences_list, founded_skill)
         extract_token(labels)
+        print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
 
 
 def skill_replace(data, ner):
