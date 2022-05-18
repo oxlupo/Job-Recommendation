@@ -7,8 +7,7 @@ from nltk import tokenize
 from nltk.tokenize import word_tokenize
 from pathlib import Path
 from termcolor import colored
-import tqdm
-from tqdm.auto import tqdm
+from tqdm.auto import tqdm, trange
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
@@ -88,10 +87,8 @@ def find_labels(sentences, skills, index_sentence):
                                 else:
                                     for inter in range(interval[0] + 1, interval[1]):
                                         lab.append(inter)
-
                             for label in labels:
                                 data_frame.at[label[2], "labels"] = label[1]
-
                 else:
                     for word in token_index:
                         if skill == word[1] and data_frame.at[word[0], "labels"] == "E":
@@ -188,6 +185,7 @@ def get_similar_word(sentences, skills):
                     for sk in match:
                         if not sk in final_list:
                             final_list.append(sk)
+                            print(colored(f"skill was founded >>>>> [{sk}]", 'green'))
             except Exception:
                 continue
     else:
@@ -236,7 +234,8 @@ def make_dataset(text_name):
         sentences_list = split_by_sentences(text=text)
         start_found = time.process_time()
         main_dataframe = pd.DataFrame({})
-        for index, sentence in enumerate(sentences_list):
+
+        for index, sentence in enumerate(tqdm(sentences_list, total=len(sentences_list))):
             founded_skill = get_similar_word(sentences=sentence, skills=skills_list)
             if not founded_skill == []:
                 labels = find_labels(sentence, founded_skill, index_sentence=index)
