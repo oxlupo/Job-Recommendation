@@ -215,7 +215,7 @@ def extract_token(dataframe):
 
     filepath = Path('dataset/ner/ner_skill.csv')
     filepath.parent.mkdir(parents=True, exist_ok=True)
-    return dataframe.to_csv(filepath)
+    return dataframe.to_csv(filepath, index=False)
 
 
 with open('dataset/linkedin-skills/linkedin_skills.txt', "r", encoding="utf-8") as linkdin_skills:
@@ -241,7 +241,7 @@ def make_dataset(text_name):
                 labels = find_labels(sentence, founded_skill, index_sentence=index)
                 main_dataframe = main_dataframe.append(labels)
         print(colored(f"Finding step {time.process_time() - start_found} was took", "yellow"))
-        extract_token(labels)
+        extract_token(main_dataframe)
 
 
 def skill_replace(data, ner):
@@ -265,8 +265,5 @@ def skill_replace(data, ner):
                         generate_sentence.append(sentence)
                         print(colored(sentence, "green"))
     return sk
-
-
-make_dataset(text_name="summary.txt")
 
 
