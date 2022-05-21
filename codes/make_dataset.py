@@ -17,7 +17,7 @@ def find_accuracy(dataframe, skills_list):
     """a percentage between [0,100]:return"""
     # labels format is ["O", "B-SKILL" , "O-SKILL"]
     labels = list(dataframe["labels"])
-    final_list = []
+    founded_list = []
     for index, label in enumerate(labels):
         if label == "B-SKILL":
             skill_list = []
@@ -38,17 +38,15 @@ def find_accuracy(dataframe, skills_list):
                     break
 
             string_skill = " ".join(skill_list)
-            final_list.append(string_skill)
-    labels_count = len(list(set(final_list)))
+            founded_list.append(string_skill)
+    labels_count = len(list(set(founded_list)))
     skills_count = len(skills_list)
     print(colored(f"the number of labels is >>>>>>> {skills_count}", "green"))
     print(colored(f"the number of labels was founded is >>>>>>> {labels_count}", "green"))
     print(colored(f">>>>>>> [{skills_count-labels_count}] skill was not found ", "red"))
-    not_in_list = [x for x in skills_list if not x in final_list]
+    not_in_list = [x for x in skills_list if not x in founded_list]
 
-    return not_in_list, list(set(final_list))
-
-
+    return not_in_list, list(set(founded_list))
 
 
 def split_by_sentences(text):
@@ -159,6 +157,7 @@ def split_sentences_token(sentences_list, labels):
 
     return main_dataframe
 
+
 def get_similar_word(sentences, skills):
     """use diff-lib to get most similar word to skill"""
     if isinstance(sentences, list):
@@ -191,6 +190,7 @@ def get_similar_word(sentences, skills):
     else:
         raise "acceptable only list and str type"
     return final_list
+
 
 def fill_sentences_id(dataframe, text):
     sentences_list = tokenize.sent_tokenize(text)
@@ -249,21 +249,49 @@ def skill_replace(data, ner):
     sentences_list = split_by_sentences(text=data)
     iter_not_in_list = iter(not_in_list)
     generate_sentence = []
-    for sentence in sentences_list:
-        skill_check = []
-        for skill in final_list:
-            pattern = rf"\b{skill}\b"
-            match = re.findall(pattern=pattern, string=sentence)
-            if not match == []:
-                for sk in match:
-                    for it in range(len(match)):
-                        print(sentence)
-                        if not sk in skill_check:
-                            skill_check.append(sk)
-                            sentence = sentence.replace(sk, next(iter_not_in_list))
+    skill_check = []
+    for skill_n in tqdm(skills_list, total=len(skills_list)):
+        for sentence in sentences_list:
+            if len(sentence) in range(20, 220):
+                for skill in skills_list:
+                    pattern = rf"\b{skill}\b"
+                    match = re.findall(pattern=pattern, string=sentence)
+                    if not match == []:
+                        for sk in match:
+                            for it in range(len(match)):
+                                print(sentence)
+                                if not sk in skill_check:
+                                    skill_check.append(sk)
+                                    sentence = sentence.replace(sk, next(iter_not_in_list))
+                                generate_sentence.append(sentence)
+                                print(colored(sentence, "green"))
 
-                        generate_sentence.append(sentence)
+    return generate_sentence
+
+
+with open("dataset/About/summary.txt") as data:
+    text = data.read().lower()
+    ner = pd.read_csv("ner.csv", index_col=False)
+    sentences_list = split_by_sentences(text=text)
+    not_in_list, final_list = find_accuracy(dataframe=ner, skills_list=skills_list)
+    not_in_list_iter = iter(not_in_list)
+    generated_list = []
+    sentence_range = [x for x in sentences_list if len(x) in range(20, 200)][1:11000]
+    for sentence in tqdm(sentence_range, total=len(sentence_range)):
+            try:
+                founded_skill = get_similar_word(sentences=sentence, skills=skills_list)
+                if not founded_skill == []:
+                    for foun in founded_skill:
+                        try:
+                            print(sentence)
+                            sentence = sentence.replace(foun, next(not_in_list_iter))
+                        except Exception as e:
+                            break
+                        generated_list.append(sentence)
                         print(colored(sentence, "green"))
-    return sk
-
-
+            except Exception as e:
+                print(e)
+    textfile = open("generate.txt", "w")
+    for element in generated_list:
+        textfile.write(element + "\n")
+    textfile.close()
